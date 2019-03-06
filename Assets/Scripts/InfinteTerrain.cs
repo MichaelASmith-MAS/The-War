@@ -89,9 +89,11 @@ public class InfinteTerrain : MonoBehaviour
 
         MeshRenderer meshRenderer;
         MeshFilter meshFilter;
+        MeshCollider meshCollider;
 
         LODInfo[] detailLevels;
         LODMesh[] lODMeshes;
+        LODMesh collisionLODMesh;
 
         MapData mapData;
         bool mapDataReceived;
@@ -108,6 +110,7 @@ public class InfinteTerrain : MonoBehaviour
             meshObject = new GameObject("Terrain Chunk");
             meshRenderer = meshObject.AddComponent<MeshRenderer>();
             meshFilter = meshObject.AddComponent<MeshFilter>();
+            meshCollider = meshObject.AddComponent<MeshCollider>();
             meshRenderer.material = material;
 
             meshObject.transform.position = positionV3;
@@ -120,7 +123,10 @@ public class InfinteTerrain : MonoBehaviour
             for (int i = 0; i < detailLevels.Length; i++)
             {
                 lODMeshes[i] = new LODMesh(detailLevels[i].lod, UpdateTerrainChunk);
-
+                if(detailLevels[i].useForCollider)
+                {
+                    collisionLODMesh = lODMeshes[i];
+                }
             }
 
             mapGenerator.RequestMapData(position, OnMapDataRecieved);
@@ -171,6 +177,18 @@ public class InfinteTerrain : MonoBehaviour
                         else if (!lODMesh.hasRequestedMesh)
                         {
                             lODMesh.RequestMesh(mapData);
+                        }
+                    }
+
+                    if (lodIndex == 0)
+                    {
+                        if(collisionLODMesh.hasMesh)
+                        {
+                            meshCollider.sharedMesh = collisionLODMesh.mesh;
+                        }
+                        else if(!collisionLODMesh.hasRequestedMesh)
+                        {
+                            collisionLODMesh.RequestMesh(mapData);
                         }
                     }
 
@@ -229,6 +247,7 @@ public class InfinteTerrain : MonoBehaviour
     {
         public int lod;
         public float visibleDistanceThreshold;
+        public bool useForCollider;
     }
 
 }
