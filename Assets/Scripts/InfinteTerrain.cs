@@ -20,7 +20,7 @@ public class InfinteTerrain : MonoBehaviour
     static MapGenerator staticMapGenerator;
     MapGenerator mapGenerator;
 
-    int chunkSize;
+    float meshWorldSize;
     int chunksVisibleInViewDistance;
 
     Dictionary<Vector2, TerrainChunk> terrainChunkDictionary = new Dictionary<Vector2, TerrainChunk>();
@@ -31,17 +31,17 @@ public class InfinteTerrain : MonoBehaviour
         mapGenerator = FindObjectOfType<MapGenerator>();
         staticMapGenerator = mapGenerator;
 
-        chunkSize = mapGenerator.MapChunkSize - 1;
+        meshWorldSize = mapGenerator.meshSettings.MeshWorldSize - 1;
 
         maxViewDist = detailLevels[detailLevels.Length - 1].visibleDistanceThreshold;
-        chunksVisibleInViewDistance = Mathf.RoundToInt(maxViewDist / chunkSize);
+        chunksVisibleInViewDistance = Mathf.RoundToInt(maxViewDist / meshWorldSize);
 
         UpdateVisibleChunks();
     }
 
     void Update()
     {
-        viewerPosition = new Vector2(viewer.position.x, viewer.position.z) / mapGenerator.terrainData.uniformScale;
+        viewerPosition = new Vector2(viewer.position.x, viewer.position.z);
 
         if(viewerPosition != viewerPositionOld)
         {
@@ -71,8 +71,8 @@ public class InfinteTerrain : MonoBehaviour
 
         }
 
-        int currentChunkCoordX = Mathf.RoundToInt(viewerPosition.x / chunkSize);
-        int currentChunkCoordY = Mathf.RoundToInt(viewerPosition.y / chunkSize);
+        int currentChunkCoordX = Mathf.RoundToInt(viewerPosition.x / meshWorldSize);
+        int currentChunkCoordY = Mathf.RoundToInt(viewerPosition.y / meshWorldSize);
 
         for (int yOffset = -chunksVisibleInViewDistance; yOffset <= chunksVisibleInViewDistance; yOffset++)
         {
@@ -89,7 +89,7 @@ public class InfinteTerrain : MonoBehaviour
                     }
                     else
                     {
-                        terrainChunkDictionary.Add(viewedChunkCoord, new TerrainChunk(viewedChunkCoord, chunkSize, detailLevels, colliderLODIndex, transform, mapMaterial));
+                        terrainChunkDictionary.Add(viewedChunkCoord, new TerrainChunk(viewedChunkCoord, meshWorldSize, detailLevels, colliderLODIndex, transform, mapMaterial));
                     }
                 }
             }
@@ -101,7 +101,7 @@ public class InfinteTerrain : MonoBehaviour
         public Vector2 coord;
 
         GameObject meshObject;
-        Vector2 position;
+        Vector2 sampleCenter;
         Bounds bounds;
 
         MeshRenderer meshRenderer;
@@ -112,21 +112,21 @@ public class InfinteTerrain : MonoBehaviour
         LODMesh[] lODMeshes;
         int colliderLODIndex;
 
-        MapData mapData;
+        HeightMap mapData;
         bool mapDataReceived;
         bool hasSetCollider = false;
 
         int previousLODIndex = -1;
 
-        public TerrainChunk(Vector2 coord, int size, LODInfo[] detailLevels, int colliderLODIndex, Transform parent, Material material)
+        public TerrainChunk(Vector2 coord, float meshWorldSize, LODInfo[] detailLevels, int colliderLODIndex, Transform parent, Material material)
         {
             this.coord = coord;
             this.detailLevels = detailLevels;
             this.colliderLODIndex = colliderLODIndex;
 
-            position = coord * size;
-            bounds = new Bounds(position, Vector2.one * size);
-            Vector3 positionV3 = new Vector3(position.x, 0, position.y);
+            sampleCenter = coord * meshWorldSize / staticMapGenerator.meshSettings.meshScale;
+            Vector2 position = coord * meshWorldSize;
+            bounds = new Bounds(sampleCenter, Vector2.one * meshWorldSize);
 
             meshObject = new GameObject("Terrain Chunk");
             meshRenderer = meshObject.AddComponent<MeshRenderer>();
@@ -134,9 +134,8 @@ public class InfinteTerrain : MonoBehaviour
             meshCollider = meshObject.AddComponent<MeshCollider>();
             meshRenderer.material = material;
 
-            meshObject.transform.position = positionV3 * staticMapGenerator.terrainData.uniformScale;
+            meshObject.transform.position = new Vector3(position.x, 0, position.y);
             meshObject.transform.parent = parent;
-            meshObject.transform.localScale = Vector3.one * staticMapGenerator.terrainData.uniformScale;
 
             SetVisible(false);
 
@@ -152,10 +151,10 @@ public class InfinteTerrain : MonoBehaviour
                 }
             }
 
-            staticMapGenerator.RequestMapData(position, OnMapDataRecieved);
+            staticMapGenerator.RequestHeightMap(sampleCenter, OnMapDataRecieved);
         }
 
-        void OnMapDataRecieved(MapData mapData)
+        void OnMapDataRecieved(HeightMap mapData)
         {
             this.mapData = mapData;
             mapDataReceived = true;
@@ -280,7 +279,7 @@ public class InfinteTerrain : MonoBehaviour
             updateCallback();
         }
 
-        public void RequestMesh(MapData mapData)
+        public void RequestMesh(HeightMap mapData)
         {
             hasRequestedMesh = true;
             staticMapGenerator.RequestMeshData(mapData, lod, OnMeshDataReceived);
@@ -290,7 +289,7 @@ public class InfinteTerrain : MonoBehaviour
     [System.Serializable]
     public struct LODInfo
     {
-        [Range(0,MeshGenerator.numSupportedLODs - 1)]
+        [Range(0, MeshSettings.numSupportedLODs - 1)]
         public int lod;
         public float visibleDistanceThreshold;
 
