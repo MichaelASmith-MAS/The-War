@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu()]
-public class MeshSettings : UpdatableData
+public class MeshSettings : UpdatableSettings
 {
     public float meshScale = 1f;
     public bool useFlatShading;

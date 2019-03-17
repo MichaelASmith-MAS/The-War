@@ -1,168 +1,216 @@
-﻿using System;
-using System.Threading;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum GenerationType { SingleChunk, Infinite }
+public enum TerrainType { Water, Sand, Grass, Rock }
+
 public class MapGenerator : MonoBehaviour
 {
-    public enum DrawMode { NoiseMap, DrawMesh }
+    public GenerationType generationType;
 
-    public DrawMode drawMode;
-
-    public MeshSettings meshSettings;
+    public NoiseSettings noiseSettings;
     public HeightMapSettings heightMapSettings;
-    public TextureData textureData;
+    public MeshSettings meshSettings;
+    public TextureSettings textureSettings;
 
-    public Material terrainMaterial;
+    public Material gameMapMaterial;
+
+    public int colliderLODIndex;
+    public LODInfo[] detailLevels;
+
+    public Transform viewer;
 
 
-    [Range(0, MeshSettings.numSupportedLODs - 1)]
-    public int editorPreviewLevelOfDetail;
+    Vector2 viewerPosition;
+    Vector2 viewerPositionOld;
 
-    public bool autoUpdate;
+    const float viewerMoveThresholdForChunkUpdate = 25f;
+    const float sqrViewerMoveThresholdForChunkUpdate = viewerMoveThresholdForChunkUpdate * viewerMoveThresholdForChunkUpdate;
 
-    Queue<MapThreadInfo<HeightMap>> heightMapThreadInfoQueue = new Queue<MapThreadInfo<HeightMap>>();
-    Queue<MapThreadInfo<MeshData>> meshDataThreadInfoQueue = new Queue<MapThreadInfo<MeshData>>();
+    float meshWorldSize;
+    int chunksVisibleInViewDistance;
+
+    Dictionary<Vector2, TerrainChunk> terrainChunkDictionary = new Dictionary<Vector2, TerrainChunk>();
+    List<TerrainChunk> visibleTerrainChunks = new List<TerrainChunk>();
+
+    TerrainType[,] terrainTypes;
 
     void Start()
     {
-        textureData.ApplyToMaterial(terrainMaterial);
-        textureData.UpdateMeshHeights(terrainMaterial, heightMapSettings.MinHeight, heightMapSettings.MaxHeight);
+        noiseSettings.seed = Random.Range(int.MinValue, int.MaxValue); //Randomize seed
 
-    }
-
-    void OnValuesUpdated()
-    {
-        if(!Application.isPlaying)
+        if (generationType == GenerationType.SingleChunk)
         {
-            DrawMapInEditor();
+            GenerateSingleTerrain();
+
         }
-    }
-
-    void OnTextureValuesUpdated()
-    {
-        textureData.ApplyToMaterial(terrainMaterial);
-    }
-
-
-    public void DrawMapInEditor()
-    {
-        textureData.UpdateMeshHeights(terrainMaterial, heightMapSettings.MinHeight, heightMapSettings.MaxHeight);
-
-        HeightMap heightMap = HeightMapGenerator.GenerateHeightMap(meshSettings.NumVertsPerLine, meshSettings.NumVertsPerLine, heightMapSettings, Vector2.zero);
-
-        MapDisplay display = FindObjectOfType<MapDisplay>();
-
-        if (drawMode == DrawMode.NoiseMap)
+        else
         {
-            display.DrawTexture(TextureGenerator.TextureFromHeightMap(heightMap.values));
-        }
-        else if (drawMode == DrawMode.DrawMesh)
-        {
-            display.DrawMesh(MeshGenerator.GenerateTerrainMesh(heightMap.values, meshSettings, editorPreviewLevelOfDetail));
+            GenerateStartTerrain();
 
         }
 
     }
 
-    public void RequestHeightMap(Vector2 center, Action<HeightMap> callback)
+    void Update()
     {
-        ThreadStart threadStart = delegate
+        if (generationType == GenerationType.Infinite)
         {
-            HeightMapThread(center, callback);
-        };
+            viewerPosition = new Vector2(viewer.position.x, viewer.position.z);
 
-        new Thread(threadStart).Start();
-
-    }
-    
-    void HeightMapThread(Vector2 center, Action<HeightMap> callback)
-    {
-        HeightMap heightMap = HeightMapGenerator.GenerateHeightMap(meshSettings.NumVertsPerLine, meshSettings.NumVertsPerLine, heightMapSettings, center);
-        lock (heightMapThreadInfoQueue)
-        {
-            heightMapThreadInfoQueue.Enqueue(new MapThreadInfo<HeightMap>(callback, heightMap));
-        }
-
-    }
-
-    public void RequestMeshData(HeightMap heightMap, int lod, Action<MeshData> callback)
-    {
-        ThreadStart threadStart = delegate
-        {
-            MeshDataThread(heightMap, lod, callback);
-        };
-
-        new Thread(threadStart).Start();
-
-    }
-
-    void MeshDataThread(HeightMap heightMap, int lod, Action<MeshData> callback)
-    {
-        MeshData meshData = MeshGenerator.GenerateTerrainMesh(heightMap.values, meshSettings, lod);
-
-        lock(meshDataThreadInfoQueue)
-        {
-            meshDataThreadInfoQueue.Enqueue(new MapThreadInfo<MeshData>(callback, meshData));
-        }
-
-    }
-
-    private void Update()
-    {
-        if (heightMapThreadInfoQueue.Count > 0)
-        {
-            for (int i = 0; i < heightMapThreadInfoQueue.Count; i++)
+            if (viewerPosition != viewerPositionOld)
             {
-                MapThreadInfo<HeightMap> threadInfo = heightMapThreadInfoQueue.Dequeue();
-                threadInfo.callback(threadInfo.parameter);
+                foreach (TerrainChunk chunk in visibleTerrainChunks)
+                {
+                    chunk.UpdateCollisionMesh();
+                }
+            }
+
+            if ((viewerPositionOld - viewerPosition).sqrMagnitude > sqrViewerMoveThresholdForChunkUpdate)
+            {
+                viewerPositionOld = viewerPosition;
+                UpdateVisibleChunks();
+            }
+        }
+    }
+
+    void GenerateSingleTerrain()
+    {
+        float[,] terrainNoiseMap;
+        HeightMap heightMap;
+        MeshData meshData;
+        GameObject gameMap;
+        MeshRenderer gameMapMeshRenderer;
+        MeshFilter gameMapMeshFilter;
+        MeshCollider gameMapMeshCollider;
+
+        noiseSettings.offset.x = Random.Range(-100000, 100000); //Randomize map offset
+        noiseSettings.offset.y = Random.Range(-100000, 100000); //Randomize map offset
+
+        terrainNoiseMap = NoiseGenerator.GenerateNoiseMap(meshSettings.NumVertsPerLine, meshSettings.NumVertsPerLine, noiseSettings, Vector2.zero); //Generate the noise map itself
+
+        heightMap = HeightMapGenerator.GenerateHeightMap(meshSettings.NumVertsPerLine, meshSettings.NumVertsPerLine, heightMapSettings, terrainNoiseMap); //Normalizes noise map
+
+        terrainTypes = new TerrainType[meshSettings.NumVertsPerLine, meshSettings.NumVertsPerLine]; //Sets array of terrain types to be equal to the width and height of the map
+        
+        // run through every column and row in the map to determine the type of terrain at the location
+        for (int y = 0; y < meshSettings.NumVertsPerLine; y++)
+        {
+            for (int x = 0; x < meshSettings.NumVertsPerLine; x++)
+            {
+                for (int i = textureSettings.layers.Length - 1; i >= 0; i--) //Start at the end of the list and work backwards for simplification
+                {
+                    if(heightMap.values[x,y] > textureSettings.layers[i].startHeight)
+                    {
+                        terrainTypes[x, y] = textureSettings.layers[i].terrainType;
+                        break;
+                    }
+                }
             }
         }
 
-        if (meshDataThreadInfoQueue.Count > 0)
-        {
-            for (int i = 0; i < meshDataThreadInfoQueue.Count; i++)
-            {
-                MapThreadInfo<MeshData> threadInfo = meshDataThreadInfoQueue.Dequeue();
-                threadInfo.callback(threadInfo.parameter);
+        meshData = MeshGenerator.GenerateTerrainMesh(heightMap.values, meshSettings, 0); //Generates the mesh information necessary to create a new mesh object 
+        
+        //Create the mesh and set up all necessary values
+        gameMap = new GameObject("Game Map");
+        gameMap.transform.parent = transform;
+        gameMapMeshRenderer = gameMap.AddComponent<MeshRenderer>();
+        gameMapMeshFilter = gameMap.AddComponent<MeshFilter>();
+        gameMapMeshCollider = gameMap.AddComponent<MeshCollider>();
 
+        gameMapMeshRenderer.sharedMaterial = gameMapMaterial;
+
+        Mesh gameMapMesh = meshData.CreateMesh();
+
+        gameMapMeshFilter.mesh = gameMapMesh;
+        gameMapMeshCollider.sharedMesh = gameMapMesh;
+
+        // Apply texture data to map material
+        textureSettings.ApplyToMaterial(gameMapMaterial);
+        textureSettings.UpdateMeshHeights(gameMapMaterial, heightMapSettings.MinHeight, heightMapSettings.MaxHeight);
+    }
+
+    void GenerateStartTerrain()
+    {
+        
+
+        Debug.Log("Infinite terrain not yet implemented.");
+
+        meshWorldSize = meshSettings.MeshWorldSize - 1;
+
+        float maxViewDist = detailLevels[detailLevels.Length - 1].visibleDistanceThreshold;
+        chunksVisibleInViewDistance = Mathf.RoundToInt(maxViewDist / meshWorldSize);
+
+        viewerPosition = new Vector2(viewer.position.x, viewer.position.z);
+
+        textureSettings.ApplyToMaterial(gameMapMaterial);
+        textureSettings.UpdateMeshHeights(gameMapMaterial, heightMapSettings.MinHeight, heightMapSettings.MaxHeight);
+
+        UpdateVisibleChunks();
+    }
+
+    void UpdateVisibleChunks()
+    {
+        HashSet<Vector2> alreadyUpdatedChunkCoords = new HashSet<Vector2>();
+
+        for (int i = visibleTerrainChunks.Count - 1; i >= 0; i--)
+        {
+            alreadyUpdatedChunkCoords.Add(visibleTerrainChunks[i].coord);
+            visibleTerrainChunks[i].UpdateTerrainChunk();
+
+        }
+
+        int currentChunkCoordX = Mathf.RoundToInt(viewerPosition.x / meshWorldSize);
+        int currentChunkCoordY = Mathf.RoundToInt(viewerPosition.y / meshWorldSize);
+
+        for (int yOffset = -chunksVisibleInViewDistance; yOffset <= chunksVisibleInViewDistance; yOffset++)
+        {
+            for (int xOffset = -chunksVisibleInViewDistance; xOffset <= chunksVisibleInViewDistance; xOffset++)
+            {
+                Vector2 viewedChunkCoord = new Vector2(currentChunkCoordX + xOffset, currentChunkCoordY + yOffset);
+
+                if (!alreadyUpdatedChunkCoords.Contains(viewedChunkCoord))
+                {
+                    if (terrainChunkDictionary.ContainsKey(viewedChunkCoord))
+                    {
+                        terrainChunkDictionary[viewedChunkCoord].UpdateTerrainChunk();
+
+                    }
+                    //else
+                    //{
+                    //    TerrainChunk newChunk = new TerrainChunk(viewedChunkCoord, heightMapSettings, meshSettings, detailLevels, colliderLODIndex, transform, viewer, mapMaterial);
+                    //    terrainChunkDictionary.Add(viewedChunkCoord, newChunk);
+
+                    //    newChunk.OnVisibilityChanged += OnTerrainChunkVisibilityChanged;
+                    //    newChunk.Load();
+                    //}
+                }
             }
         }
 
     }
 
-    private void OnValidate()
+    void OnTerrainChunkVisibilityChanged(TerrainChunk chunk, bool isVisible)
     {
-        if(meshSettings != null)
+        if (isVisible)
         {
-            meshSettings.OnValuesUpdated -= OnValuesUpdated;
-            meshSettings.OnValuesUpdated += OnValuesUpdated;
+            visibleTerrainChunks.Add(chunk);
         }
-        if(heightMapSettings != null)
+        else
         {
-            heightMapSettings.OnValuesUpdated -= OnValuesUpdated;
-            heightMapSettings.OnValuesUpdated += OnValuesUpdated;
-        }
-        if(textureData != null)
-        {
-            textureData.OnValuesUpdated -= OnTextureValuesUpdated;
-            textureData.OnValuesUpdated += OnTextureValuesUpdated;
-        }
-
-    }
-
-    struct MapThreadInfo<T>
-    {
-        public readonly Action<T> callback;
-        public readonly T parameter;
-
-        public MapThreadInfo(Action<T> callback, T parameter)
-        {
-            this.callback = callback ?? throw new ArgumentNullException(nameof(callback));
-            this.parameter = parameter;
+            visibleTerrainChunks.Remove(chunk);
         }
     }
 }
 
 
+[System.Serializable]
+public struct LODInfo
+{
+    [Range(0, MeshSettings.numSupportedLODs - 1)]
+    public int lod;
+    public float visibleDistanceThreshold;
+
+    public float SqrVisibleDistanceThreshold { get { return visibleDistanceThreshold * visibleDistanceThreshold; } }
+}
