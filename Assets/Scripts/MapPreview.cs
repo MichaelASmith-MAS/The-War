@@ -34,9 +34,8 @@ public class MapPreview : MonoBehaviour
 
         float[,] noiseMap = NoiseGenerator.GenerateNoiseMap(meshSettings.NumVertsPerLine, meshSettings.NumVertsPerLine, noiseSettings, Vector2.zero);
         HeightMap heightMap = HeightMapGenerator.GenerateHeightMap(meshSettings.NumVertsPerLine, meshSettings.NumVertsPerLine, heightMapSettings, noiseMap);
-
-        DrawMesh(MeshGenerator.GenerateTerrainMesh(heightMap.values, meshSettings, editorPreviewLevelOfDetail));
-
+        int vertsPerLine;
+        DrawMesh(MeshGenerator.GenerateTerrainMesh(heightMap.values, meshSettings, editorPreviewLevelOfDetail, out vertsPerLine));
     }
 
     private void OnValidate()
@@ -61,7 +60,6 @@ public class MapPreview : MonoBehaviour
             textureSettings.OnValuesUpdated -= OnTextureValuesUpdated;
             textureSettings.OnValuesUpdated += OnTextureValuesUpdated;
         }
-
     }
 
     void OnValuesUpdated()

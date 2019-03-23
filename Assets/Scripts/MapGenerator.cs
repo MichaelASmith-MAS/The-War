@@ -13,6 +13,7 @@ public class MapGenerator : MonoBehaviour
     public HeightMapSettings heightMapSettings;
     public MeshSettings meshSettings;
     public TextureSettings textureSettings;
+    public TerrainObjectSettings terrainObjectSettings;
 
     public Material gameMapMaterial;
 
@@ -110,7 +111,8 @@ public class MapGenerator : MonoBehaviour
             }
         }
 
-        meshData = MeshGenerator.GenerateTerrainMesh(heightMap.values, meshSettings, 0); //Generates the mesh information necessary to create a new mesh object 
+        int verticesPerLine;
+        meshData = MeshGenerator.GenerateTerrainMesh(heightMap.values, meshSettings, 0, out verticesPerLine); //Generates the mesh information necessary to create a new mesh object 
         
         //Create the mesh and set up all necessary values
         gameMap = new GameObject("Game Map");
@@ -129,6 +131,35 @@ public class MapGenerator : MonoBehaviour
         // Apply texture data to map material
         textureSettings.ApplyToMaterial(gameMapMaterial);
         textureSettings.UpdateMeshHeights(gameMapMaterial, heightMapSettings.MinHeight, heightMapSettings.MaxHeight);
+
+        terrainObjectSettings.noiseSettings.seed = Random.Range(int.MaxValue, int.MinValue);
+        terrainObjectSettings.noiseSettings.offset = new Vector2(Random.Range(-100000, 100000), Random.Range(-100000, 100000));
+
+        float[,] objectPlacementNoise = NoiseGenerator.GenerateNoiseMap(meshSettings.NumVertsPerLine, meshSettings.NumVertsPerLine, terrainObjectSettings.noiseSettings, Vector2.zero);
+
+        TerrainObjects[,] terrainPlacementObjects = TerrainObjectGenerator.GenerateObjectPlacement(terrainObjectSettings, heightMap, heightMapSettings, objectPlacementNoise);
+
+        for (int y = 0; y < verticesPerLine; y++)
+        {
+            for (int x = 0; x < verticesPerLine; x++)
+            {
+                if(terrainPlacementObjects[x, y] != null)
+                {
+                    GameObject tempObject = Instantiate(terrainPlacementObjects[x, y].objectToPlace, meshData.Vertices[y * verticesPerLine + x], Quaternion.identity, gameMap.transform);
+                    if (terrainPlacementObjects[x, y].randomizeRotation)
+                    {
+                        float xAngle = terrainPlacementObjects[x, y].angleToWorld ? meshData.Normals[y * verticesPerLine + x].x : 0;
+                        float zAngle = terrainPlacementObjects[x, y].angleToWorld ? meshData.Normals[y * verticesPerLine + x].z : 0;
+                        tempObject.transform.rotation = Quaternion.Euler(xAngle, Random.Range(0, 360), zAngle);
+                    }
+                    if (terrainPlacementObjects[x, y].randomizeSize)
+                    {
+                        float scale = Random.Range(terrainPlacementObjects[x, y].minimumSize, terrainPlacementObjects[x, y].maximumSize);
+                        tempObject.transform.localScale = new Vector3(scale, scale, scale);
+                    }
+                }
+            }
+        }
     }
 
     void GenerateStartTerrain()

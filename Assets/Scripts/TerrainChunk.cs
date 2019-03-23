@@ -206,6 +206,6 @@ class LODMesh
     public void RequestMesh(HeightMap heightMap, MeshSettings meshSettings)
     {
         hasRequestedMesh = true;
-        ThreadedDataRequestor.RequestData(() => MeshGenerator.GenerateTerrainMesh(heightMap.values, meshSettings, lod), OnMeshDataReceived);
+        ThreadedDataRequestor.RequestData(() => MeshGenerator.GenerateTerrainMesh(heightMap.values, meshSettings, lod, out int verts), OnMeshDataReceived);
     }
 }

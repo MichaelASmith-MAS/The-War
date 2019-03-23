@@ -15,8 +15,8 @@ MonoBehaviour:
   autoUpdate: 1
   layers:
   - terrainType: 0
-    texture: {fileID: 2800000, guid: 4f1d2422ddee5ca4bb8d13880f7df2f9, type: 3}
-    tint: {r: 0.051886797, g: 0.11150148, b: 1, a: 0}
+    texture: {fileID: 2800000, guid: ef5c51cfa2ce46043a41a376b560c525, type: 3}
+    tint: {r: 0.38679248, g: 0.24068859, b: 0.093049124, a: 0}
     tintStrength: 0.559
     startHeight: 0
     blendStrength: 0.39
@@ -25,15 +25,15 @@ MonoBehaviour:
     texture: {fileID: 2800000, guid: b7bb3db47518bdc46bcfd7124b46df16, type: 3}
     tint: {r: 1, g: 0.99284506, b: 0.4764151, a: 0}
     tintStrength: 0.546
-    startHeight: 0.24
-    blendStrength: 0.04
+    startHeight: 0.234
+    blendStrength: 0.085
     textureScale: 5
   - terrainType: 2
     texture: {fileID: 2800000, guid: c739fff3460365149a0d2c937d81605a, type: 3}
     tint: {r: 0.09372544, g: 1, b: 0, a: 0}
     tintStrength: 0.261
-    startHeight: 0.297
-    blendStrength: 0.04
+    startHeight: 0.316
+    blendStrength: 0.066
     textureScale: 5
   - terrainType: 2
     texture: {fileID: 2800000, guid: 15d84f9c5be666e4e98ab060beb60ef4, type: 3}

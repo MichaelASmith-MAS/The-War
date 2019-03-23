@@ -1,0 +1,92 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8634557b30c50874fbb92c47c4825bbb, type: 3}
+  m_Name: Default Object Placement Settings
+  m_EditorClassIdentifier: 
+  autoUpdate: 0
+  terrainObjects:
+  - objectToPlace: {fileID: 6900597616333824890, guid: 4aa13624013e6ef4e9b6b97ce5b84272,
+      type: 3}
+    placementLikelihood: 30
+    minimumHeight: 0.231
+    maximumHeight: 0.609
+    randomizeRotation: 1
+    randomizeSize: 1
+    minimumSize: 0.5
+    maximumSize: 1.14
+    angleToWorld: 0
+    usePerlinNoise: 1
+    minimumNoiseLevel: 0
+    maximumNoiseLevel: 0.496
+  - objectToPlace: {fileID: 1509027636213144015, guid: d661bac9fd236be49991f31c6d5bf0c6,
+      type: 3}
+    placementLikelihood: 30
+    minimumHeight: 0.336
+    maximumHeight: 0.72
+    randomizeRotation: 1
+    randomizeSize: 1
+    minimumSize: 0.5
+    maximumSize: 1.3
+    angleToWorld: 0
+    usePerlinNoise: 1
+    minimumNoiseLevel: 0.497
+    maximumNoiseLevel: 1
+  - objectToPlace: {fileID: 108544, guid: d638ef2ca2fe20c4c9c08e125692d3f4, type: 3}
+    placementLikelihood: 10
+    minimumHeight: 0.266
+    maximumHeight: 0.615
+    randomizeRotation: 1
+    randomizeSize: 1
+    minimumSize: 0.75
+    maximumSize: 1.25
+    angleToWorld: 1
+    usePerlinNoise: 1
+    minimumNoiseLevel: 0.776
+    maximumNoiseLevel: 0.196
+  - objectToPlace: {fileID: 7337934896651889385, guid: 5dd8d4890ee7320429ea93c04b40ea3b,
+      type: 3}
+    placementLikelihood: 5
+    minimumHeight: 0
+    maximumHeight: 1
+    randomizeRotation: 1
+    randomizeSize: 1
+    minimumSize: 0.5
+    maximumSize: 1
+    angleToWorld: 1
+    usePerlinNoise: 0
+    minimumNoiseLevel: 0
+    maximumNoiseLevel: 0
+  - objectToPlace: {fileID: 136824, guid: 393b236c42954a640b513d46de90ac38, type: 3}
+    placementLikelihood: 10
+    minimumHeight: 0.252
+    maximumHeight: 0.699
+    randomizeRotation: 1
+    randomizeSize: 1
+    minimumSize: 0.5
+    maximumSize: 2
+    angleToWorld: 0
+    usePerlinNoise: 1
+    minimumNoiseLevel: 0
+    maximumNoiseLevel: 0.293
+  - objectToPlace: {fileID: 100000, guid: c91c1eb85782d5748ace27eb4d7415bb, type: 3}
+    placementLikelihood: 10
+    minimumHeight: 0.294
+    maximumHeight: 0.678
+    randomizeRotation: 1
+    randomizeSize: 1
+    minimumSize: 0.5
+    maximumSize: 1.1
+    angleToWorld: 0
+    usePerlinNoise: 1
+    minimumNoiseLevel: 0.678
+    maximumNoiseLevel: 1
+  noiseSettings: {fileID: 11400000, guid: 8d871a5c0eca7894892e0bc36f9b6477, type: 2}

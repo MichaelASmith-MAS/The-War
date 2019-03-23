@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: Default Noise Settings
   m_EditorClassIdentifier: 
   autoUpdate: 1
-  normalizeMode: 0
-  seed: -289479982
+  normalizeMode: 1
+  seed: -223110968
   octaves: 6
   scale: 120
   lacunarity: 2.41
   persistance: 0.445
-  offset: {x: -8300, y: -87807}
+  offset: {x: -61862, y: 53126}
