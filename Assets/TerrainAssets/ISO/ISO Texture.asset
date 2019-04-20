@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4380b1ff302115342b2d93eeca9904ec, type: 3}
+  m_Name: ISO Texture
+  m_EditorClassIdentifier: 
+  autoUpdate: 1
+  layers:
+  - terrainType: 0
+    texture: {fileID: 2800000, guid: 4f1d2422ddee5ca4bb8d13880f7df2f9, type: 3}
+    tint: {r: 0, g: 0.13080311, b: 1, a: 0}
+    tintStrength: 0.296
+    startHeight: 0.014
+    blendStrength: 0.052
+    textureScale: 5
+  - terrainType: 0
+    texture: {fileID: 2800000, guid: b7bb3db47518bdc46bcfd7124b46df16, type: 3}
+    tint: {r: 1, g: 0.9635534, b: 0, a: 0}
+    tintStrength: 0.307
+    startHeight: 0.024
+    blendStrength: 0.023
+    textureScale: 5
+  - terrainType: 0
+    texture: {fileID: 2800000, guid: c739fff3460365149a0d2c937d81605a, type: 3}
+    tint: {r: 0.03834212, g: 1, b: 0, a: 0}
+    tintStrength: 0.157
+    startHeight: 0.04
+    blendStrength: 0.017
+    textureScale: 5
+  - terrainType: 0
+    texture: {fileID: 2800000, guid: 440eb36db91ca410f800ff3cfe43572f, type: 3}
+    tint: {r: 0.4528302, g: 0.278679, b: 0.061943766, a: 0}
+    tintStrength: 0.481
+    startHeight: 0.255
+    blendStrength: 0.331
+    textureScale: 5
+  - terrainType: 0
+    texture: {fileID: 2800000, guid: 3ad92247d30000043a870fd20d65c552, type: 3}
+    tint: {r: 0.5, g: 0.5, b: 0.5, a: 0}
+    tintStrength: 0
+    startHeight: 0.568
+    blendStrength: 0.609
+    textureScale: 5

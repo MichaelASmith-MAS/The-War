@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   autoUpdate: 1
   normalizeMode: 1
-  seed: -223110968
+  seed: 854214898
   octaves: 6
   scale: 120
   lacunarity: 2.41
   persistance: 0.445
-  offset: {x: -61862, y: 53126}
+  offset: {x: 34829, y: -47740}

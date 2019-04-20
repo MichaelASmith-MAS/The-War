@@ -1,0 +1,68 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a63bd59663ac34f4483c235b45633e2b, type: 3}
+  m_Name: Real World Height Map
+  m_EditorClassIdentifier: 
+  autoUpdate: 1
+  heightMultiplier: 30
+  useHeightCurve: 0
+  heightCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0.012500763
+      value: 0.023651123
+      inSlope: 0.07635096
+      outSlope: 0.07635096
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.13856389
+      value: 0.033276163
+      inSlope: 0.14152217
+      outSlope: 0.14152217
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.29524758
+      value: 0.29524758
+      inSlope: 3.6300814
+      outSlope: 3.6300814
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.043571584
+    - serializedVersion: 3
+      time: 0.6937002
+      value: 0.76290566
+      inSlope: 1.3658466
+      outSlope: 1.3658466
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.114734635
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0.7740597
+      outSlope: 0.7740597
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
