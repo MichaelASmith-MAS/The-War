@@ -2,8 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum UnitStates { None, Move }
+
 public class Unit : MonoBehaviour
 {
+    public FiniteStateMachine<UnitStates> finiteStateMachine;
     public int speedValue = 10;
 
     public Speed speed;
@@ -26,12 +29,12 @@ public class Unit : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        finiteStateMachine.RunState();
     }
 
     public void Move()
     {
-        PathfindingGenerators.GeneratePaths(currentPosition, MapGenerator.graph, out Dictionary<Node, float> distance, out Dictionary<Node, Node> previous);
+        
 
     }
 }
